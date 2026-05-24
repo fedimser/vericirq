@@ -35,4 +35,4 @@ jobs:
       - name: Install requirements
         run: pip install .[test]
       - name: Run tests
-        run: pytest .
+        run: pytest vericirq

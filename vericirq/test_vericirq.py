@@ -2,6 +2,7 @@ import cirq
 import pytest
 
 from .examples.cuccarro_adder import CuccaroAdder, verify_cuccaro_adder
+from .examples.draper_adder import DraperAdder, verify_draper_adder
 from .vericirq import GateVerifier, PermutationGate
 
 
@@ -63,3 +64,9 @@ def test_ancilla_not_zero():
 def test_verify_cuccarro_adder(n: int):
     adder = CuccaroAdder(n)
     verify_cuccaro_adder(adder)
+
+
+@pytest.mark.parametrize("n", [4, 32])
+def test_verify_draper_adder(n: int):
+    adder = DraperAdder(n)
+    verify_draper_adder(adder)

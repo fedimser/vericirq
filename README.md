@@ -22,7 +22,7 @@ To download for development:
 git clone https://github.com/fedimser/vericirq.git 
 cd vericirq 
 pip install -e .[test]
-pytest .
+pytest vericirq
 ```
 
 ### Examples
