@@ -29,6 +29,10 @@ pytest vericirq
 
 See [Examples.ipynb](Examples.ipynb) for examples.
 
+### AI Skill
+
+For autonomous implementation and formal verification workflows (including Q# porting), see the Copilot skill at [.github/skills/vericirq-circuit-implementation/SKILL.md](.github/skills/vericirq-circuit-implementation/SKILL.md).
+
 ### How it works
 The quantum circuit is converted to boolean circuit. User provides a spec as z3 expression (over BitVec variables) for inputs and outputs. Then VeriCirq constructs a [SAT problem](https://en.wikipedia.org/wiki/Boolean_satisfiability_problem) to find any input on which the spec is false. 
 
