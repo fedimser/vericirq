@@ -6,8 +6,14 @@ from .examples.draper_adder import DraperAdder, verify_draper_adder
 from .examples.gidney_adder import GidneyAdder, verify_gidney_adder
 from .examples.jhha_multiplier import JhhaMultiplier, verify_jhha_multiplier
 from .examples.mct_multiplier import MctMultiplier, verify_mct_multiplier
-from .vericirq import GateVerifier, PermutationGate
+from .examples.subtract import (
+    AddSubGate,
+    SubtractGate,
+    verify_add_sub_gate,
+    verify_subtract_gate,
+)
 from .gates import AND, IAND
+from .vericirq import GateVerifier, PermutationGate
 
 
 def test_noop():
@@ -117,7 +123,16 @@ def test_verify_jhha_multiplier(n: int):
     verify_jhha_multiplier(mult)
 
 
-@pytest.mark.parametrize("n,m", [(4, 4), (12, 16)])
-def test_verify_gidney_adder(n: int, m: int):
-    adder = GidneyAdder(n, m)
+@pytest.mark.parametrize("n,m", [(1, 1), (4, 4), (12, 16)])
+@pytest.mark.parametrize("is_controlled", [False, True])
+def test_verify_gidney_adder(n: int, m: int, is_controlled: bool):
+    adder = GidneyAdder(n, m, is_controlled=is_controlled)
     verify_gidney_adder(adder)
+
+
+def test_verify_subtract():
+    verify_subtract_gate(SubtractGate(8))
+
+
+def test_verify_add_sub():
+    verify_add_sub_gate(AddSubGate(8))

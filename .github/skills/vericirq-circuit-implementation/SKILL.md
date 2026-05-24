@@ -169,6 +169,7 @@ Map Q# constructs carefully:
   - descending loops a..-1..b map to range(a, b - 1, -1).
 - within/apply often means compute/uncompute pattern.
   - In Cirq, emit forward ops then emit inverse/uncompute sequence.
+  - For manually implementing the controlled variant of a controllable Q# operation with `within { A } apply { B }`, do not add controls to `A`; only control `B`.
 - Adj + Ctl in Q# indicates reversibility/control support.
   - In this project, emit only gates from the supported gate set (section 1.1).
   - Map SWAP → `cirq.SWAP`, controlled-SWAP (Fredkin) → `cirq.CSWAP`, NOT → `cirq.X`, controlled-NOT → `cirq.CNOT`, Toffoli → `cirq.CCNOT`.
