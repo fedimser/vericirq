@@ -12,6 +12,7 @@ from .examples.draper_adder import DraperAdder, verify_draper_adder
 from .examples.gidney_adder import GidneyAdder, verify_gidney_adder
 from .examples.jhha_multiplier import JhhaMultiplier, verify_jhha_multiplier
 from .examples.mct_multiplier import MctMultiplier, verify_mct_multiplier
+from .examples.square_root import SquareRoot, verify_square_root
 from .examples.subtract import (
     AddSubGate,
     SubtractGate,
@@ -152,3 +153,8 @@ def test_verify_divide_restoring_gate(n: int):
 @pytest.mark.parametrize("n", [3, 6])
 def test_verify_divide_non_restoring_gate(n: int):
     verify_divide_non_restoring_gate(DivideNonRestoringGate(n))
+
+
+@pytest.mark.parametrize("n,ans_size", [(1, 1), (4, 2), (5, 3), (6, 4), (10, 5)])
+def test_verify_square_root(n: int, ans_size: int):
+    verify_square_root(SquareRoot(n, ans_size))

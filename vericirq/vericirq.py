@@ -40,11 +40,6 @@ class PermutationGate(cirq.Gate):
         return sum(self.input_sizes) + self.ancilla_size
 
 
-def _bit_to_bool(bitvec_var, bit_id):
-    """Extracts bit from z3.BitVec as z3.Bool."""
-    return z3.Extract(bit_id, bit_id, bitvec_var) == 1
-
-
 @dataclass
 class VerificationResult:
     """Result of verification.
@@ -76,6 +71,11 @@ class VerificationResult:
 # Only these gates are expected to be produced by the gate decomposition.
 # Note that cirq.X, cirq.CNOT and cirq.CCNOT are aliases to one of these types.
 _ALLOWED_GATES = {cirq.X, cirq.CNOT, cirq.CCNOT, cirq.CSWAP, AND, IAND}
+
+
+def _bit_to_bool(bitvec_var: z3.BitVecRef, bit_id: int) -> z3.BoolRef:
+    """Extracts bit from z3.BitVec as z3.Bool."""
+    return z3.Extract(bit_id, bit_id, bitvec_var) == 1
 
 
 class GateVerifier:
