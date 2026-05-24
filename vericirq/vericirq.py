@@ -5,12 +5,16 @@ from typing import Optional, Self
 import cirq
 import z3
 
+from .gates import AND, IAND
+
 
 class PermutationGate(cirq.Gate):
     """Cirq gate that can be verified with VeriCirq.
 
     This gate must satisfy the following conditions:
-     * It must only consist of supported gates: X, CNOT, CCNOT, SWAP, CSWAP.
+     * It must only consist of supported gates:
+       * Cirq gates: X, CNOT, CCNOT, SWAP, CSWAP.
+       * VeriCirq gates (in `vericirq.gates`): AND, IAND.
      * (Implied by above) It's a permutation gate - it maps basis states to basis states.
      * It acts on a fixed number of qubits. Some of the first qubits are split in 1 or more little-endian unsigned
         integer registers, and remaining qubits are the "ancilla" qubits.
@@ -71,16 +75,7 @@ class VerificationResult:
 
 # Only these gates are expected to be produced by the gate decomposition.
 # Note that cirq.X, cirq.CNOT and cirq.CCNOT are aliases to one of these types.
-_ALLOWED_GATES = {
-    cirq.X,
-    cirq.CNOT,
-    cirq.CCNOT,
-    cirq.CSWAP,
-    cirq.XPowGate,
-    cirq.CXPowGate,
-    cirq.CCXPowGate,
-    cirq.CSwapGate,
-}
+_ALLOWED_GATES = {cirq.X, cirq.CNOT, cirq.CCNOT, cirq.CSWAP, AND, IAND}
 
 
 class GateVerifier:
@@ -110,6 +105,10 @@ class GateVerifier:
         qubits += [z3.BoolVal(False) for _ in range(gate.ancilla_size)]
         assert len(qubits) == gate.num_qubits()
 
+        # If circuit contains AND/IAND gates, this list contains variables that must be false to satisfy AND
+        # preconditions and IANDposticindition (target is zero).
+        self.must_be_zero_for_and = []
+
         # Convert each supported quantum gate (X, CNOT, CCNOT, etc.) into corresponding logical gate.
         cirq_qubits = cirq.LineQubit.range(gate.num_qubits())
         ops = cirq.decompose(gate.on(*cirq_qubits), keep=lambda op: op.gate in _ALLOWED_GATES)
@@ -118,19 +117,19 @@ class GateVerifier:
             qubit_ids = [q.x for q in op.qubits]
 
             if isinstance(op_gate, cirq.XPowGate) and op_gate.exponent == 1:
-                assert len(qubit_ids) == 1
                 gate_name = "X"
             elif isinstance(op_gate, cirq.CXPowGate) and op_gate.exponent == 1:
-                assert len(qubit_ids) == 2
                 gate_name = "CNOT"
             elif isinstance(op_gate, cirq.CCXPowGate) and op_gate.exponent == 1:
-                assert len(qubit_ids) == 3
                 gate_name = "CCNOT"
             elif isinstance(op_gate, cirq.CSwapGate):
-                assert len(qubit_ids) == 3
                 gate_name = "CSWAP"
+            elif op_gate is AND:
+                gate_name = "AND"
+            elif op_gate is IAND:
+                gate_name = "IAND"
             else:
-                raise ValueError(f"Unsupported gate: {gate}.")
+                raise ValueError(f"Unsupported gate: {op_gate}.")
 
             if gate_name == "X":
                 assert len(qubit_ids) == 1
@@ -142,12 +141,16 @@ class GateVerifier:
                 output = z3.FreshBool()
                 self.solver.add(output == z3.Xor(qubits[q0], qubits[q1]))
                 qubits[q1] = output
-            elif gate_name == "CCNOT":
+            elif gate_name == "CCNOT" or gate_name == "AND" or gate_name == "IAND":
                 assert len(qubit_ids) == 3
                 q0, q1, q2 = qubit_ids
                 output = z3.FreshBool()
+                if gate_name == "AND":
+                    self.must_be_zero_for_and.append(qubits[q2])
                 self.solver.add(output == z3.Xor(z3.And(qubits[q0], qubits[q1]), qubits[q2]))
                 qubits[q2] = output
+                if gate_name == "IAND":
+                    self.must_be_zero_for_and.append(qubits[q2])
             elif gate_name == "CSWAP":
                 assert len(qubit_ids) == 3
                 q0, q1, q2 = qubit_ids
@@ -202,6 +205,21 @@ class GateVerifier:
         else:
             result = VerificationResult.ok()
 
+        self.solver.pop()
+        return result
+
+    def verify_and_gates(self) -> VerificationResult:
+        """Verifies conditions for AND and IAND gates.
+
+        For each AND gate: target qubit is zero before gate application.
+        For each IAND gate: target qubit is zero after gate application.
+        """
+        self.solver.push()
+        self.solver.add(z3.Or(self.must_be_zero_for_and))
+        if self.solver.check() == z3.sat:
+            result = self._failed_result_from_model(self.solver.model())
+        else:
+            result = VerificationResult.ok()
         self.solver.pop()
         return result
 

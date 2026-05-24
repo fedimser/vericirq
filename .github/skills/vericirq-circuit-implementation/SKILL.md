@@ -33,15 +33,17 @@ This model is strict and intentional: it enables symbolic reasoning over all pos
 
 #### Supported gate set
 
-| Cirq symbol | Operation | Notes |
+| Symbol | Operation | Notes |
 |---|---|---|
 | `cirq.X` | Pauli-X (bit flip) | |
 | `cirq.CNOT` | Controlled-NOT | |
 | `cirq.CCNOT` | Toffoli (doubly-controlled NOT) | |
 | `cirq.SWAP` | Swap two qubits | Prefer over manual 3-CNOT decomposition |
 | `cirq.CSWAP` | Fredkin (controlled-SWAP) | Prefer over manual CNOT+CCNOT decomposition |
+| `vericirq.gates.AND` | Gidney-style AND (target must be 0 before apply) | Optional VeriCirq helper gate |
+| `vericirq.gates.IAND` | Inverse Gidney-style AND (target must be 0 after apply) | Optional VeriCirq helper gate |
 
-**Rule:** if the algorithm you are porting uses one of these operations, always use the corresponding Cirq gate directly. Never decompose a supported gate manually into lower-level primitives.
+**Rule:** if the algorithm you are porting uses one of these operations, use the corresponding supported gate directly. Never decompose a supported gate manually into lower-level primitives.
 
 ### 1.2 VeriCirq model (how verification works)
 
@@ -91,6 +93,7 @@ Checklist:
 - Add output conditions.
   - Usually one condition per output register.
   - Use BitVec arithmetic and zero/sign extension when widths differ.
+- If you used `vericirq.gates.AND` / `vericirq.gates.IAND`, also include `verify_and_gates`.
 - Always include verify_ancillas.
 - Use assert_ok on each required property in test-oriented verification helpers.
 
@@ -169,6 +172,9 @@ Map Q# constructs carefully:
 - Adj + Ctl in Q# indicates reversibility/control support.
   - In this project, emit only gates from the supported gate set (section 1.1).
   - Map SWAP → `cirq.SWAP`, controlled-SWAP (Fredkin) → `cirq.CSWAP`, NOT → `cirq.X`, controlled-NOT → `cirq.CNOT`, Toffoli → `cirq.CCNOT`.
+  - When the source algorithm explicitly uses Gidney AND primitives (for example Q# `AND` or `Adjoint AND`), prefer `vericirq.gates.AND` / `vericirq.gates.IAND` and run `GateVerifier.verify_and_gates`.
+  - If you do not want a dependency on VeriCirq gate helpers, using `cirq.CCNOT` directly is acceptable.
+  - Custom local AND/IAND wrappers are also acceptable as long as they decompose to `cirq.CCNOT`.
 
 ### 3.3 Workspace and ancilla derivation
 

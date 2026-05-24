@@ -3,9 +3,11 @@ import pytest
 
 from .examples.cuccarro_adder import CuccaroAdder, verify_cuccaro_adder
 from .examples.draper_adder import DraperAdder, verify_draper_adder
+from .examples.gidney_adder import GidneyAdder, verify_gidney_adder
 from .examples.jhha_multiplier import JhhaMultiplier, verify_jhha_multiplier
 from .examples.mct_multiplier import MctMultiplier, verify_mct_multiplier
 from .vericirq import GateVerifier, PermutationGate
+from .gates import AND, IAND
 
 
 def test_noop():
@@ -62,6 +64,35 @@ def test_ancilla_not_zero():
     assert result.input == [1]
 
 
+def test_bad_and_gate():
+    # This gates violates AND precondition if input[2]=1.
+    class BadGate(PermutationGate):
+        input_sizes = [1, 1, 1]
+
+        def _decompose_(self, qubits):
+            yield AND(*qubits)
+
+    ver = GateVerifier(BadGate())
+    result = ver.verify_and_gates()
+    assert not result.ok
+    assert result.input[2] == 1
+
+
+def test_bad_iand_gate():
+    # This gates violates IAND postocndition if input[2]=1.
+    class BadGate(PermutationGate):
+        input_sizes = [1, 1, 1]
+
+        def _decompose_(self, qubits):
+            yield cirq.CCNOT(*qubits)
+            yield IAND(*qubits)
+
+    ver = GateVerifier(BadGate())
+    result = ver.verify_and_gates()
+    assert not result.ok
+    assert result.input[2] == 1
+
+
 @pytest.mark.parametrize("n", [4, 32])
 def test_verify_cuccarro_adder(n: int):
     adder = CuccaroAdder(n)
@@ -84,3 +115,9 @@ def test_verify_mct_multiplier(n1: int, n2: int):
 def test_verify_jhha_multiplier(n: int):
     mult = JhhaMultiplier(n)
     verify_jhha_multiplier(mult)
+
+
+@pytest.mark.parametrize("n,m", [(4, 4), (12, 16)])
+def test_verify_gidney_adder(n: int, m: int):
+    adder = GidneyAdder(n, m)
+    verify_gidney_adder(adder)
