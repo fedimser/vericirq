@@ -2,6 +2,12 @@ import cirq
 import pytest
 
 from .examples.cuccarro_adder import CuccaroAdder, verify_cuccaro_adder
+from .examples.divide import (
+    DivideNonRestoringGate,
+    DivideRestoringGate,
+    verify_divide_non_restoring_gate,
+    verify_divide_restoring_gate,
+)
 from .examples.draper_adder import DraperAdder, verify_draper_adder
 from .examples.gidney_adder import GidneyAdder, verify_gidney_adder
 from .examples.jhha_multiplier import JhhaMultiplier, verify_jhha_multiplier
@@ -136,3 +142,13 @@ def test_verify_subtract():
 
 def test_verify_add_sub():
     verify_add_sub_gate(AddSubGate(8))
+
+
+@pytest.mark.parametrize("n", [3, 6])
+def test_verify_divide_restoring_gate(n: int):
+    verify_divide_restoring_gate(DivideRestoringGate(n))
+
+
+@pytest.mark.parametrize("n", [3, 6])
+def test_verify_divide_non_restoring_gate(n: int):
+    verify_divide_non_restoring_gate(DivideNonRestoringGate(n))

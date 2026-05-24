@@ -1,3 +1,4 @@
+from functools import cached_property
 from typing import Iterator, Optional, Sequence
 
 import cirq
@@ -122,7 +123,7 @@ class GidneyAdder(PermutationGate):
         else:
             return [self.n, self.m]
 
-    @property
+    @cached_property
     def ancilla_size(self) -> int:
         x_eff_len = self.m - 1 if self.m - self.n >= 2 else self.n
         padding_len = max(self.m - self.n - 1, 0)
@@ -130,8 +131,9 @@ class GidneyAdder(PermutationGate):
         ctrl_len = 1 if self.is_controlled else 0
         return padding_len + carries_len + ctrl_len
 
-    def _decompose_(self, qubits: list[Qid]) -> Iterator[cirq.OP_TREE]:
+    def _decompose_(self, qubits_seq: Sequence[Qid]) -> Iterator[cirq.OP_TREE]:
         n, m = self.n, self.m
+        qubits = list(qubits_seq)
 
         ctrl = None  # type: Optional[Qid]
         if self.is_controlled:

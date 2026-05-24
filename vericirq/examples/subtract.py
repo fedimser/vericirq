@@ -1,3 +1,4 @@
+from functools import cached_property
 from typing import Iterator, Sequence
 
 import cirq
@@ -20,7 +21,7 @@ class SubtractGate(PermutationGate):
     def input_sizes(self) -> list[int]:
         return [self.n, self.n]
 
-    @property
+    @cached_property
     def ancilla_size(self) -> int:
         return self.adder.ancilla_size
 
