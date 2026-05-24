@@ -7,8 +7,8 @@ on:
     branches: [ main ]
 
 jobs:
-  format-check:
-    name: Format check
+  lint:
+    name: Lint (black+mypy)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
@@ -17,10 +17,10 @@ jobs:
           python-version: '3.13'
           architecture: 'x64'
           cache: 'pip'
-      - name: Install black
-        run: pip install black==25.1.0
-      - name: Run black
-        run: black --check --diff vericirq
+      - name: Install requirements
+        run: pip install .[dev]
+      - name: Lint
+        run: ./lint.sh
   pytest-ubuntu:
     strategy:
       matrix:
@@ -35,6 +35,6 @@ jobs:
           architecture: 'x64'
           cache: 'pip'
       - name: Install requirements
-        run: pip install .[test]
+        run: pip install .[dev]
       - name: Run tests
         run: pytest vericirq

@@ -20,10 +20,12 @@ dependencies = [
 ]
 
 # Development dependencies
-# pip install .[test]
+# pip install .[dev]
 [project.optional-dependencies]
-test = [
+dev = [
     "pytest",
+    "black==25.1.0",
+    "mypy==1.15.0",
 ]
 
 [tool.black]
@@ -31,3 +33,7 @@ line-length = 120
 
 [tool.setuptools]
 py-modules = ["vericirq"]
+
+[[tool.mypy.overrides]]
+module = ["z3.*"]
+ignore_missing_imports = true

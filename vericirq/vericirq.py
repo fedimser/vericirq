@@ -1,6 +1,6 @@
 import abc
 from dataclasses import dataclass
-from typing import Optional, Self
+from typing import Optional
 
 import cirq
 import z3
@@ -58,7 +58,7 @@ class VerificationResult:
     output: Optional[list[int]] = None
 
     @staticmethod
-    def ok() -> Self:
+    def create_ok() -> "VerificationResult":
         return VerificationResult(True, None, None)
 
     def assert_ok(self):
@@ -114,7 +114,7 @@ class GateVerifier:
         ops = cirq.decompose(gate.on(*cirq_qubits), keep=lambda op: op.gate in _ALLOWED_GATES)
         for op in ops:
             op_gate = op.gate
-            qubit_ids = [q.x for q in op.qubits]
+            qubit_ids = [q.x for q in op.qubits]  # type: ignore
 
             if isinstance(op_gate, cirq.XPowGate) and op_gate.exponent == 1:
                 gate_name = "X"
@@ -203,7 +203,7 @@ class GateVerifier:
             # Bug: found input that results in non-zero ancillas after computation.
             result = self._failed_result_from_model(self.solver.model())
         else:
-            result = VerificationResult.ok()
+            result = VerificationResult.create_ok()
 
         self.solver.pop()
         return result
@@ -219,7 +219,7 @@ class GateVerifier:
         if self.solver.check() == z3.sat:
             result = self._failed_result_from_model(self.solver.model())
         else:
-            result = VerificationResult.ok()
+            result = VerificationResult.create_ok()
         self.solver.pop()
         return result
 
@@ -235,7 +235,7 @@ class GateVerifier:
         if self.solver.check() == z3.sat:
             result = self._failed_result_from_model(self.solver.model())
         else:
-            result = VerificationResult.ok()
+            result = VerificationResult.create_ok()
 
         self.solver.pop()
         return result

@@ -1,9 +1,10 @@
 import cirq
 
 from .vericirq import PermutationGate
+from typing import Any
 
 
-def _bits_to_int(bits: list[bool]) -> int:
+def _bits_to_int(bits: Any) -> int:
     return sum([int(bit) * (1 << i) for i, bit in enumerate(bits)])
 
 
