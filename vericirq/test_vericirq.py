@@ -3,6 +3,7 @@ import pytest
 
 from .examples.cuccarro_adder import CuccaroAdder, verify_cuccaro_adder
 from .examples.draper_adder import DraperAdder, verify_draper_adder
+from .examples.jhha_multiplier import JhhaMultiplier, verify_jhha_multiplier
 from .examples.mct_multiplier import MctMultiplier, verify_mct_multiplier
 from .vericirq import GateVerifier, PermutationGate
 
@@ -77,3 +78,9 @@ def test_verify_draper_adder(n: int):
 def test_verify_mct_multiplier(n1: int, n2: int):
     mult = MctMultiplier(n1, n2)
     verify_mct_multiplier(mult)
+
+
+@pytest.mark.parametrize("n", [3, 4])
+def test_verify_jhha_multiplier(n: int):
+    mult = JhhaMultiplier(n)
+    verify_jhha_multiplier(mult)

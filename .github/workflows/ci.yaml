@@ -16,6 +16,7 @@ jobs:
         with:
           python-version: '3.13'
           architecture: 'x64'
+          cache: 'pip'
       - name: Install black
         run: pip install black==25.1.0
       - name: Run black
@@ -32,6 +33,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
+          cache: 'pip'
       - name: Install requirements
         run: pip install .[test]
       - name: Run tests

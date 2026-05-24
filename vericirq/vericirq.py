@@ -10,7 +10,7 @@ class PermutationGate(cirq.Gate):
     """Cirq gate that can be verified with VeriCirq.
 
     This gate must satisfy the following conditions:
-     * It must only consist of X, CNOT and CCNOT gates.
+     * It must only consist of supported gates: X, CNOT, CCNOT, SWAP, CSWAP.
      * (Implied by above) It's a permutation gate - it maps basis states to basis states.
      * It acts on a fixed number of qubits. Some of the first qubits are split in 1 or more little-endian unsigned
         integer registers, and remaining qubits are the "ancilla" qubits.
@@ -75,9 +75,11 @@ _ALLOWED_GATES = {
     cirq.X,
     cirq.CNOT,
     cirq.CCNOT,
+    cirq.CSWAP,
     cirq.XPowGate,
     cirq.CXPowGate,
     cirq.CCXPowGate,
+    cirq.CSwapGate,
 }
 
 
@@ -108,8 +110,7 @@ class GateVerifier:
         qubits += [z3.BoolVal(False) for _ in range(gate.ancilla_size)]
         assert len(qubits) == gate.num_qubits()
 
-        # Convert each gate (X, CNOT, CCNOT) into corresponding logical gate.
-        # For CNOT and CCNOT, we add a new variable representing output of target qubit after the gate application.
+        # Convert each supported quantum gate (X, CNOT, CCNOT, etc.) into corresponding logical gate.
         cirq_qubits = cirq.LineQubit.range(gate.num_qubits())
         ops = cirq.decompose(gate.on(*cirq_qubits), keep=lambda op: op.gate in _ALLOWED_GATES)
         for op in ops:
@@ -125,6 +126,9 @@ class GateVerifier:
             elif isinstance(op_gate, cirq.CCXPowGate) and op_gate.exponent == 1:
                 assert len(qubit_ids) == 3
                 gate_name = "CCNOT"
+            elif isinstance(op_gate, cirq.CSwapGate):
+                assert len(qubit_ids) == 3
+                gate_name = "CSWAP"
             else:
                 raise ValueError(f"Unsupported gate: {gate}.")
 
@@ -144,6 +148,13 @@ class GateVerifier:
                 output = z3.FreshBool()
                 self.solver.add(output == z3.Xor(z3.And(qubits[q0], qubits[q1]), qubits[q2]))
                 qubits[q2] = output
+            elif gate_name == "CSWAP":
+                assert len(qubit_ids) == 3
+                q0, q1, q2 = qubit_ids
+                new_q1, new_q2 = z3.FreshBool(), z3.FreshBool()
+                self.solver.add(new_q1 == z3.If(qubits[q0], qubits[q2], qubits[q1]))
+                self.solver.add(new_q2 == z3.If(qubits[q0], qubits[q1], qubits[q2]))
+                qubits[q1], qubits[q2] = new_q1, new_q2
 
         # Collect variables for each output register.
         outputs_as_bool_vars = []

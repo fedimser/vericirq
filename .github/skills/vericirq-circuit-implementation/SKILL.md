@@ -16,7 +16,7 @@ Use this skill when the user asks to:
 
 Do not use this skill for:
 - non-reversible algorithms,
-- circuits requiring gates outside X/CNOT/CCNOT in the final decomposition,
+- circuits requiring gates outside the supported gate set (see section 1.1),
 - pure simulation-only testing when formal verification is explicitly required.
 
 ## 1) Foundations
@@ -25,11 +25,23 @@ Do not use this skill for:
 
 In this project, a valid circuit is modeled as a permutation gate:
 - Basis-state input maps to basis-state output.
-- Decomposition uses only X, CNOT, and CCNOT.
+- Decomposition uses only gates from the **supported gate set** listed below.
 - Qubits are partitioned into little-endian unsigned integer input registers, then ancillas.
 - Ancillas are assumed initialized to |0> and must be returned to |0>.
 
 This model is strict and intentional: it enables symbolic reasoning over all possible inputs.
+
+#### Supported gate set
+
+| Cirq symbol | Operation | Notes |
+|---|---|---|
+| `cirq.X` | Pauli-X (bit flip) | |
+| `cirq.CNOT` | Controlled-NOT | |
+| `cirq.CCNOT` | Toffoli (doubly-controlled NOT) | |
+| `cirq.SWAP` | Swap two qubits | Prefer over manual 3-CNOT decomposition |
+| `cirq.CSWAP` | Fredkin (controlled-SWAP) | Prefer over manual CNOT+CCNOT decomposition |
+
+**Rule:** if the algorithm you are porting uses one of these operations, always use the corresponding Cirq gate directly. Never decompose a supported gate manually into lower-level primitives.
 
 ### 1.2 VeriCirq model (how verification works)
 
@@ -41,7 +53,7 @@ VeriCirq translates a Cirq decomposition into symbolic constraints:
 
 Key implications:
 - Specifications are over BitVec arithmetic (modular by register width).
-- Unsupported gate variants are rejected.
+- Each gate in the supported gate set (section 1.1) is handled with direct symbolic semantics; all other gate types are rejected.
 - Ancilla checks are separate and mandatory.
 
 ## 2) Standard Implementation Workflow (Spec-first)
@@ -155,7 +167,8 @@ Map Q# constructs carefully:
 - within/apply often means compute/uncompute pattern.
   - In Cirq, emit forward ops then emit inverse/uncompute sequence.
 - Adj + Ctl in Q# indicates reversibility/control support.
-  - In this project, you usually emit explicit X/CNOT/CCNOT sequences.
+  - In this project, emit only gates from the supported gate set (section 1.1).
+  - Map SWAP → `cirq.SWAP`, controlled-SWAP (Fredkin) → `cirq.CSWAP`, NOT → `cirq.X`, controlled-NOT → `cirq.CNOT`, Toffoli → `cirq.CCNOT`.
 
 ### 3.3 Workspace and ancilla derivation
 
@@ -171,9 +184,12 @@ Derive ancilla_size from:
 - Misinterpreting inclusive Q# range bounds.
 - Wrong control/target argument order in CNOT or CCNOT.
 - Losing uncomputation (ancillas not zero at end).
+- Misreading utility helper intent from names alone.
+  - Example: a helper named `RotateRight` may implement a specific permutation convention (for example based on little-endian register ordering) that appears opposite to an intuitive adjacent-swap "right shift" implementation.
+  - Always port helper bodies exactly (or prove equivalence), not just helper names.
 - Introducing disallowed Cirq gate forms during inversion.
-  - Important: GateVerifier accepts X/CNOT/CCNOT with exponent 1 only.
-  - For self-adjoint gates, prefer reversing operation order rather than generating inverse-powered gates.
+  - GateVerifier only accepts gates from the supported gate set (section 1.1) with exponent 1.
+  - All gates in the supported set are self-inverse or have a direct supported inverse; prefer reversing operation order over generating inverse-powered gate variants.
 
 ### 3.5 Validation loop for Q# ports
 
@@ -203,7 +219,8 @@ When test fails, debug in this order:
 - num_qubits matches register + ancilla layout.
 - input_sizes and constructor parameters align with decomposition slices.
 2. Allowed gates:
-- only X/CNOT/CCNOT (no unsupported exponent variants).
+- Only gates from the supported gate set (section 1.1) are accepted.
+- No other gate forms or unsupported exponent variants are allowed.
 3. Spec consistency:
 - preconditions are correct and minimal.
 - output equations use correct BitVec widths.

@@ -95,7 +95,7 @@ class MctMultiplier(PermutationGate):
 
 
 def verify_mct_multiplier(mult: MctMultiplier):
-    """Full formal specification for Draper adder."""
+    """Full formal specification for MCT multiplier."""
     ver = GateVerifier(mult)
     a_in, b_in, c_in = ver.input_vars
     a_out, b_out, c_out = ver.output_vars
