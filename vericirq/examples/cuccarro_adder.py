@@ -24,7 +24,10 @@ class CuccaroAdder(PermutationGate):
 
     Computes: (a, b, z) := (a, (a+b)%(2^n), z⊕(a+b)/(2^n)).
 
-    Reference: https://arxiv.org/pdf/quant-ph/0410184
+    Reference:
+      A new quantum ripple-carry addition circuit
+      Cuccaro, Draper, Kutin, Moulton, 2004.
+      https://arxiv.org/pdf/quant-ph/0410184
     """
 
     def __init__(self, n: int):

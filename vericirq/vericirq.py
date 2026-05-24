@@ -174,6 +174,10 @@ class GateVerifier:
         # In case user wants to look at the circuit.
         self.circuit = cirq.Circuit(ops)
 
+    def add_precondition(self, precondition: z3.BoolRef):
+        """Adds constraints on input variables."""
+        self.solver.add(precondition)
+
     def verify_ancillas(self) -> VerificationResult:
         """Verifies that all ancillas are released in zero states."""
         self.solver.push()
@@ -190,7 +194,7 @@ class GateVerifier:
         self.solver.pop()
         return result
 
-    def verify_spec(self, spec):
+    def verify_spec(self, spec: z3.BoolRef) -> VerificationResult:
         """Verifies user-specified condition about inputs and outputs.
 
         Spec must be z3 expression which states a fact about input and output variables.
