@@ -1,12 +1,12 @@
 # VeriCirq
 
-VeriCirq is a small library for formal verification of quantum arithmetic circuits.
+VeriCirq is a small library for the formal verification of quantum arithmetic circuits.
 
-It takes a quantum circuit (as [cirq.Gate](https://quantumai.google/reference/python/cirq/Gate)) that can be decomposed into X, CNOT, CCNOT gates. For such an operation, it can verify any condition about inputs and ouputs **for all possible inputs**.
+It takes a quantum circuit (as [cirq.Gate](https://quantumai.google/reference/python/cirq/Gate)) that can be decomposed into [supported gates](https://github.com/fedimser/vericirq/blob/main/.github/skills/vericirq-circuit-implementation/SKILL.md#supported-gate-set). For such an operation, it can verify any condition about inputs and outputs **for all possible inputs**.
 
 The library uses [cirq](https://en.wikipedia.org/wiki/Cirq) for circuit representation and [z3](https://en.wikipedia.org/wiki/Z3_Theorem_Prover) for verification.
 
-This project was done as a course project for a course "[Computer-Aided Reasoning for Software](https://courses.cs.washington.edu/courses/csep590b/26sp/)" (spring 2026 quarter) at University of Washington.
+This project was completed as part of the course "[Computer-Aided Reasoning for Software](https://courses.cs.washington.edu/courses/csep590b/26sp/)" (Spring 2026) at the University of Washington.
 
 ### Installation
 
@@ -27,22 +27,28 @@ pytest vericirq
 
 ### Examples
 
-See [Examples.ipynb](Examples.ipynb) for examples.
+See [Examples.ipynb](Examples.ipynb) for a demonstration of how to use the library.
+
+See [vericirq/examples](vericirq/examples) for more advanced examples of algorithms implemented in Cirq
+and formally verified by VeriCirq. It includes 3 adders, a subtractor, a controlled
+adder-subtractor, 2 multipliers, 2 dividers, and a square root implementation.
 
 ### AI Skill
 
-For autonomous implementation and formal verification workflows (including Q# porting), see the Copilot skill at [.github/skills/vericirq-circuit-implementation/SKILL.md](.github/skills/vericirq-circuit-implementation/SKILL.md).
+For autonomous implementation and formal verification workflows, see the AI agent skill at [.github/skills/vericirq-circuit-implementation/SKILL.md](.github/skills/vericirq-circuit-implementation/SKILL.md).
 
 ### How it works
-The quantum circuit is converted to boolean circuit. User provides a spec as z3 expression (over BitVec variables) for inputs and outputs. Then VeriCirq constructs a [SAT problem](https://en.wikipedia.org/wiki/Boolean_satisfiability_problem) to find any input on which the spec is false. 
+The quantum circuit is converted into a Boolean circuit. The user provides a spec as a Z3
+expression (over BitVec variables) for inputs and outputs. Then VeriCirq constructs a
+[SAT problem](https://en.wikipedia.org/wiki/Boolean_satisfiability_problem) to find any input
+for which the spec is false.
 
-* If SAT problem has solution - it's a bug (spec violation), and user gets concrete counterexamples on which the spec is violated.
-* If SAT problem is not satisfiable - spec holds for all inputs.
+* If the SAT problem has a solution, it's a bug (a spec violation), and the user gets concrete counterexamples for which the spec is violated.
+* If the SAT problem is unsatisfiable, the spec holds for all inputs.
 
 The core implementation is in [vericirq.py](vericirq/vericirq.py).
 
 
 ### Future work
 
-* I plan to add support for AND and IAND gates introduced in [this paper](https://arxiv.org/abs/1709.06648). These are almost the same as CCNOT, except AND has precodition (traget=0), and IAND has postocndition (target=0).
-* This is course project, but I hope this will be useful for real research, and I plan to publish this on PyPi sometime in summer 2026.
+* This is a course project, but I hope it will be useful for real research, and I plan to publish it on PyPI in Summer 2026.

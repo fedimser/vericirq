@@ -143,12 +143,6 @@ def verify_divide_non_restoring_gate(gate: DivideNonRestoringGate):
     ver.add_precondition(0 < b_in)
     ver.add_precondition(c_in == 0)
 
-    ver.add_precondition(a_in == 15)
-    ver.add_precondition(b_in == 3)
-
-    ver.add_precondition(a_out == 0)
-    ver.add_precondition(c_out == 5)
-
     ver.verify_ancillas().assert_ok()
     ver.verify_and_gates().assert_ok()
 

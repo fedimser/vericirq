@@ -7,5 +7,4 @@ It is not intended to be a comprehensive library of quantum artihmetic algorithm
 
 Each example contains:
  1. Cirquit definition as PermutationGate.
- 2. Formal specification for the gate. It is a function that takes a gate, uses VeriCirq to check several conditions and
-      assert that all checks return OK.
+ 2. Formal specification for the gate. It is a function that takes a gate, uses VeriCirq to check several conditions and asserts that all checks return OK.
