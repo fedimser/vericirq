@@ -14,7 +14,7 @@ def _int_to_bits(value: int, size: int) -> list[bool]:
 
 def simulate_gate_on_inputs(gate: PermutationGate, inputs: list[int]) -> list[int]:
     """For given gate and inputs, prduces output using simulator.
-    
+
     Also verifies that ancillas are returned in 0 state.
     This function is not needed for formal verification. It's added for debugging and usage in examples.
     """
@@ -53,8 +53,6 @@ def simulate_gate_on_inputs(gate: PermutationGate, inputs: list[int]) -> list[in
 
     # Verify ancillas were measured in |0> state.
     for anc_qubit_id in range(offset, offset + gate.ancilla_size):
-        assert measured[anc_qubit_id] == False, (
-            f"Qubit {anc_qubit_id} released in non-zero state"
-        )
+        assert measured[anc_qubit_id] == False, f"Qubit {anc_qubit_id} released in non-zero state"
 
     return ans

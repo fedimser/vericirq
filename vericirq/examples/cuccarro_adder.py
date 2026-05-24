@@ -1,8 +1,8 @@
-from typing import Sequence
+from typing import Iterator, Sequence
 
-from cirq import CNOT, CCNOT
 import cirq
 import z3
+from cirq import CCNOT, CNOT
 
 from ..vericirq import GateVerifier, PermutationGate
 
@@ -39,7 +39,7 @@ class CuccaroAdder(PermutationGate):
     def ancilla_size(self):
         return 1
 
-    def _decompose_(self, qubits: Sequence[cirq.Qid]) -> z3.Iterator[cirq.OP_TREE]:
+    def _decompose_(self, qubits: Sequence[cirq.Qid]) -> Iterator[cirq.OP_TREE]:
         n = self.n
         assert len(qubits) == 2 * n + 2
         a, b, z, c = qubits[0:n], qubits[n : 2 * n], qubits[2 * n], qubits[2 * n + 1]

@@ -21,8 +21,7 @@ To download for development:
 ```
 git clone https://github.com/fedimser/vericirq.git 
 cd vericirq 
-pip install -e .
-pip install pytest
+pip install -e .[test]
 pytest .
 ```
 

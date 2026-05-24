@@ -111,9 +111,7 @@ class GateVerifier:
         # Convert each gate (X, CNOT, CCNOT) into corresponding logical gate.
         # For CNOT and CCNOT, we add a new variable representing output of target qubit after the gate application.
         cirq_qubits = cirq.LineQubit.range(gate.num_qubits())
-        ops = cirq.decompose(
-            gate.on(*cirq_qubits), keep=lambda op: op.gate in _ALLOWED_GATES
-        )
+        ops = cirq.decompose(gate.on(*cirq_qubits), keep=lambda op: op.gate in _ALLOWED_GATES)
         for op in ops:
             op_gate = op.gate
             qubit_ids = [q.x for q in op.qubits]
@@ -144,9 +142,7 @@ class GateVerifier:
                 assert len(qubit_ids) == 3
                 q0, q1, q2 = qubit_ids
                 output = z3.FreshBool()
-                self.solver.add(
-                    output == z3.Xor(z3.And(qubits[q0], qubits[q1]), qubits[q2])
-                )
+                self.solver.add(output == z3.Xor(z3.And(qubits[q0], qubits[q1]), qubits[q2]))
                 qubits[q2] = output
 
         # Collect variables for each output register.
@@ -158,9 +154,7 @@ class GateVerifier:
 
         # Remember expressions representing ancillas in the end of computation.
         anc_start = sum(self.gate.input_sizes)
-        self.final_ancillas = [
-            qubits[i] for i in range(anc_start, anc_start + gate.ancilla_size)
-        ]
+        self.final_ancillas = [qubits[i] for i in range(anc_start, anc_start + gate.ancilla_size)]
 
         # Prepare BitVec variables to represent inputs and outputs.
         # Tie them to boolean variables.
@@ -175,9 +169,7 @@ class GateVerifier:
             output_var = z3.BitVec(f"out_{i}", input_size)
             self.output_vars.append(output_var)
             for j in range(input_size):
-                self.solver.add(
-                    outputs_as_bool_vars[i][j] == _bit_to_bool(output_var, j)
-                )
+                self.solver.add(outputs_as_bool_vars[i][j] == _bit_to_bool(output_var, j))
 
         # In case user wants to look at the circuit.
         self.circuit = cirq.Circuit(ops)

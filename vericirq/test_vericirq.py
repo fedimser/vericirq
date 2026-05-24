@@ -1,7 +1,8 @@
+import cirq
+import pytest
+
 from .examples.cuccarro_adder import CuccaroAdder, verify_cuccaro_adder
 from .vericirq import GateVerifier, PermutationGate
-import pytest
-import cirq
 
 
 def test_noop():
