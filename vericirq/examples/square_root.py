@@ -184,7 +184,7 @@ def _is_square_root(a: z3.BitVecRef, b: z3.BitVecRef) -> z3.BoolRef:
     a_ext = z3.ZeroExt(safe_width - a.size(), a)
     b_ext = z3.ZeroExt(safe_width - b.size(), b)
     # Equivalent condition: a^2 <= b < (a+1)^2.
-    return z3.And(a_ext * a_ext <= b_ext, b_ext < (a_ext + 1) * (a_ext + 1))
+    return z3.And(z3.ULE(a_ext * a_ext, b_ext), z3.ULT(b_ext, (a_ext + 1) * (a_ext + 1)))
 
 
 def verify_square_root(gate: SquareRoot):
@@ -199,7 +199,7 @@ def verify_square_root(gate: SquareRoot):
     ver.verify_and_gates().assert_ok()
 
     # Verify that ans_out = floor(sqrt(r_in)).
-    ver.verify_spec(_is_square_root(ans_out, r_in))
+    ver.verify_spec(_is_square_root(ans_out, r_in)).assert_ok()
 
     # Verify that r_out = r_in - ans_out^2.
     ans_ext = z3.ZeroExt(gate.n - gate.ans_size, ans_out)
