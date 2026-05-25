@@ -77,17 +77,23 @@ class SquareRoot(PermutationGate):
         # pad_R + optional pad_Ans + z + workspace shared by AddSub/CtrlAdd.
         return self._pad_r_size + self._pad_ans_size + 1 + self._work_size
 
-    def _add_sub(self, ctrl: Qid, xs: list[Qid], ys: list[Qid], work: list[Qid]) -> Iterator[cirq.OP_TREE]:
+    def _add_sub(
+        self, ctrl: Qid, xs: list[Qid], ys: list[Qid], work: list[Qid]
+    ) -> Iterator[cirq.OP_TREE]:
         assert len(xs) == len(ys)
         gate = AddSubGate(len(xs))
         yield gate.on(*([ctrl] + xs + ys + work[: gate.ancilla_size]))
 
-    def _ctrl_add(self, ctrl: Qid, xs: list[Qid], ys: list[Qid], work: list[Qid]) -> Iterator[cirq.OP_TREE]:
+    def _ctrl_add(
+        self, ctrl: Qid, xs: list[Qid], ys: list[Qid], work: list[Qid]
+    ) -> Iterator[cirq.OP_TREE]:
         assert len(xs) == len(ys)
         gate = GidneyAdder(len(xs), len(ys), is_controlled=True)
         yield gate.on(*([ctrl] + xs + ys + work[: gate.ancilla_size]))
 
-    def _square_root_internal(self, r: list[Qid], ans: list[Qid], z: Qid, work: list[Qid]) -> Iterator[cirq.OP_TREE]:
+    def _square_root_internal(
+        self, r: list[Qid], ans: list[Qid], z: Qid, work: list[Qid]
+    ) -> Iterator[cirq.OP_TREE]:
         n = len(r)
         assert n % 2 == 0
         assert n >= 4

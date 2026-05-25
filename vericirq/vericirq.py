@@ -16,14 +16,16 @@ class PermutationGate(cirq.Gate):
        * Cirq gates: X, CNOT, CCNOT, SWAP, CSWAP.
        * VeriCirq gates (in `vericirq.gates`): AND, IAND.
      * (Implied by above) It's a permutation gate - it maps basis states to basis states.
-     * It acts on a fixed number of qubits. Some of the first qubits are split in 1 or more little-endian unsigned
-        integer registers, and remaining qubits are the "ancilla" qubits.
+     * It acts on a fixed number of qubits. Some of the first qubits are split into one or more
+        little-endian unsigned integer registers, and the remaining qubits are "ancilla" qubits.
 
     The user must specify these 3 things:
      * `input_sizes` - sizes of input registers.
-     * (Optional) `ancilla_size` - number of ancilla qubits. If not specified, defaults to 0 (no anicllas).
-     * Implementation of the gates by deomposing it into X, CNOT and CCNOT gates. For this, implement _decompose_
-         method that takes list of qubits and returns iterator over gates. This is Cirq's convention.
+     * (Optional) `ancilla_size` - number of ancilla qubits.
+        If not specified, defaults to 0 (no ancillas).
+     * Implementation of the gate by decomposing it into supported gates. For this, implement the
+        `_decompose_` method that takes a list of qubits and returns an iterator over gates.
+        This is Cirq's convention.
     """
 
     @property
@@ -44,8 +46,8 @@ class PermutationGate(cirq.Gate):
 class VerificationResult:
     """Result of verification.
 
-    Either "OK", in which case the spec was satisfied, or "FAIL", in which case it contains concrete counterexample -
-    inputs and outputs for which spec was not satisfied.
+    Either "OK", in which case the spec was satisfied, or "FAIL", in which case it contains concrete
+    counterexample - inputs and outputs for which the spec was not satisfied.
     """
 
     ok: bool
@@ -69,7 +71,6 @@ class VerificationResult:
 
 
 # Only these gates are expected to be produced by the gate decomposition.
-# Note that cirq.X, cirq.CNOT and cirq.CCNOT are aliases to one of these types.
 _ALLOWED_GATES = {cirq.X, cirq.CNOT, cirq.CCNOT, cirq.CSWAP, AND, IAND}
 
 
@@ -105,11 +106,11 @@ class GateVerifier:
         qubits += [z3.BoolVal(False) for _ in range(gate.ancilla_size)]
         assert len(qubits) == gate.num_qubits()
 
-        # If circuit contains AND/IAND gates, this list contains variables that must be false to satisfy AND
-        # preconditions and IANDposticindition (target is zero).
+        # If circuit contains AND/IAND gates, this list contains variables that must be false to
+        # satisfy AND preconditions and IAND postconditions.
         self.must_be_zero_for_and = []
 
-        # Convert each supported quantum gate (X, CNOT, CCNOT, etc.) into corresponding logical gate.
+        # Convert each supported quantum gate into corresponding logical gate.
         cirq_qubits = cirq.LineQubit.range(gate.num_qubits())
         ops = cirq.decompose(gate.on(*cirq_qubits), keep=lambda op: op.gate in _ALLOWED_GATES)
         for op in ops:
@@ -196,11 +197,11 @@ class GateVerifier:
         """Verifies that all ancillas are released in zero states."""
         self.solver.push()
 
-        # Add condition "any ancilla is 1" - if it's satisifed, it's a bug.
+        # Add condition "any ancilla is 1" - if it's satisfied, it's a bug.
         self.solver.add(z3.Or(self.final_ancillas))
 
         if self.solver.check() == z3.sat:
-            # Bug: found input that results in non-zero ancillas after computation.
+            # Found an input that results in non-zero ancillas after computation.
             result = self._failed_result_from_model(self.solver.model())
         else:
             result = VerificationResult.create_ok()
@@ -226,8 +227,8 @@ class GateVerifier:
     def verify_spec(self, spec: z3.BoolRef) -> VerificationResult:
         """Verifies user-specified condition about inputs and outputs.
 
-        Spec must be z3 expression which states a fact about input and output variables.
-        The variables can be accessed using `GateVerifier.input_vars` and `GateVerifier.output_vars`.
+        Spec must be a z3 expression that states a fact about input and output variables.
+        The variables can be accessed using `input_vars` and `output_vars` fields on `GateVerifier`.
         """
         self.solver.push()
         self.solver.add(z3.Not(spec))
@@ -241,7 +242,7 @@ class GateVerifier:
         return result
 
     def _failed_result_from_model(self, model) -> VerificationResult:
-        """Converts a model satisfying SAT problem to failed verification result with counterexample."""
+        """Converts a SAT model to failed verification result with counterexample."""
         return VerificationResult(
             False,
             [model.evaluate(v).as_long() for v in self.input_vars],

@@ -14,17 +14,18 @@ def _int_to_bits(value: int, size: int) -> list[bool]:
 
 
 def simulate_gate_on_inputs(gate: PermutationGate, inputs: list[int]) -> list[int]:
-    """For given gate and inputs, prduces output using simulator.
+    """For a given gate and inputs, produces output using a simulator.
 
     Also verifies that ancillas are returned in 0 state.
-    This function is not needed for formal verification. It's added for debugging and usage in examples.
+    This function is not needed for formal verification.
+    It's added for debugging and usage in examples.
     """
     assert len(inputs) == len(gate.input_sizes)
 
     # Allocate qubits.
     qubits = cirq.LineQubit.range(gate.num_qubits())
 
-    # Write input uisng X gates.
+    # Write input using X gates.
     ct = cirq.Circuit()
     offset = 0
     for i, input_size in enumerate(gate.input_sizes):
@@ -38,14 +39,14 @@ def simulate_gate_on_inputs(gate: PermutationGate, inputs: list[int]) -> list[in
     # Apply gate under test.
     ct += gate.on(*qubits)
 
-    # Add measurment for every qubit.
+    # Add measurement for every qubit.
     ct += cirq.measure(*qubits, key="m")
 
     # Simulate the circuit.
     sim = cirq.Simulator()
     measured = sim.simulate(ct).measurements["m"]
 
-    # Convert measurment result to integers.
+    # Convert measurement result to integers.
     ans = []
     offset = 0
     for input_size in gate.input_sizes:

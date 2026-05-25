@@ -17,7 +17,9 @@ def _parallel_x(qubits: Sequence[cirq.Qid]) -> Iterator[cirq.OP_TREE]:
         yield X(q)
 
 
-def _parallel_cnot(controls: Sequence[cirq.Qid], targets: Sequence[cirq.Qid]) -> Iterator[cirq.OP_TREE]:
+def _parallel_cnot(
+    controls: Sequence[cirq.Qid], targets: Sequence[cirq.Qid]
+) -> Iterator[cirq.OP_TREE]:
     assert len(controls) == len(targets)
     for control, target in zip(controls, targets):
         yield CNOT(control, target)

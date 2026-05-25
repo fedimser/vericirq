@@ -29,7 +29,7 @@ dev = [
 ]
 
 [tool.black]
-line-length = 120
+line-length = 100
 
 [tool.setuptools]
 py-modules = ["vericirq"]

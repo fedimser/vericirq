@@ -91,7 +91,9 @@ class DivideNonRestoringGate(PermutationGate):
         self.add_sub_gate = AddSubGate(n)
 
         self._ancilla_size = max(
-            self.ctrl_adder.ancilla_size, self.subtractor.ancilla_size, self.add_sub_gate.ancilla_size
+            self.ctrl_adder.ancilla_size,
+            self.subtractor.ancilla_size,
+            self.add_sub_gate.ancilla_size,
         )
 
     @property
@@ -134,7 +136,7 @@ class DivideNonRestoringGate(PermutationGate):
 
 
 def verify_divide_non_restoring_gate(gate: DivideNonRestoringGate):
-    """Full formal specification for DivideRestoringGate."""
+    """Full formal specification for DivideNonRestoringGate."""
     ver = GateVerifier(gate)
     a_in, b_in, c_in = ver.input_vars
     a_out, b_out, c_out = ver.output_vars

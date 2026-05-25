@@ -78,7 +78,7 @@ def test_ancilla_not_zero():
 
 
 def test_bad_and_gate():
-    # This gates violates AND precondition if input[2]=1.
+    # This gate violates the AND precondition if input[2]=1.
     class BadGate(PermutationGate):
         input_sizes = [1, 1, 1]
 
@@ -92,7 +92,7 @@ def test_bad_and_gate():
 
 
 def test_bad_iand_gate():
-    # This gates violates IAND postocndition if input[2]=1.
+    # This gate violates the IAND postcondition if input[2]=1.
     class BadGate(PermutationGate):
         input_sizes = [1, 1, 1]
 

@@ -7,7 +7,13 @@ from cirq import CCNOT, CNOT
 from ..vericirq import GateVerifier, PermutationGate
 
 
-def _ctrl_add(ctrl: cirq.Qid, a: Sequence[cirq.Qid], b: Sequence[cirq.Qid], z0: cirq.Qid, z1: cirq.Qid):
+def _ctrl_add(
+    ctrl: cirq.Qid,
+    a: Sequence[cirq.Qid],
+    b: Sequence[cirq.Qid],
+    z0: cirq.Qid,
+    z1: cirq.Qid,
+):
     """Controlled adder from MCT2017 section III.
 
     Computes (under control): b += a, with two helper qubits z0/z1.
