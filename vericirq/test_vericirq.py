@@ -113,8 +113,9 @@ def test_verify_cuccarro_adder(n: int):
 
 
 @pytest.mark.parametrize("n", [4, 32])
-def test_verify_draper_adder(n: int):
-    adder = DraperAdder(n)
+@pytest.mark.parametrize("with_carry", [False, True])
+def test_verify_draper_adder(n: int, with_carry: bool):
+    adder = DraperAdder(n, with_carry=with_carry)
     verify_draper_adder(adder)
 
 

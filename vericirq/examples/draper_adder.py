@@ -3,6 +3,7 @@ from typing import Iterator, Sequence
 
 import cirq
 from cirq import X, CCNOT, CNOT
+import z3
 
 from ..vericirq import GateVerifier, PermutationGate
 
@@ -80,6 +81,48 @@ def _compute_carries(
     return ops
 
 
+def _carry_workspace_size(n: int) -> int:
+    if n <= 1:
+        return 0
+    return n - n.bit_count() - _floor_log2(n)
+
+
+def _in_place_add_helper(
+    a: Sequence[cirq.Qid],
+    b: Sequence[cirq.Qid],
+    z: Sequence[cirq.Qid],
+    carry_workspace: Sequence[cirq.Qid],
+) -> Iterator[cirq.OP_TREE]:
+    n = len(a)
+    assert len(b) == n
+    zn = len(z)
+    assert zn == n or zn == n - 1
+
+    for i in range(zn):
+        yield CCNOT(a[i], b[i], z[i])
+
+    yield from _parallel_cnot(a, b)
+
+    if n > 1:
+        ws_size = _carry_workspace_size(len(z))
+        yield from _compute_carries(b[1:zn], z, carry_workspace[:ws_size])
+
+    yield from _parallel_cnot(z[: n - 1], b[1:n])
+    yield from _parallel_x(b[: n - 1])
+    yield from _parallel_cnot(a[1 : n - 1], b[1 : n - 1])
+
+    if n > 1:
+        ws_size = _carry_workspace_size(n - 1)
+        yield from reversed(_compute_carries(b[1 : n - 1], z[: n - 1], carry_workspace[:ws_size]))
+
+    yield from _parallel_cnot(a[1 : n - 1], b[1 : n - 1])
+
+    for i in range(n - 1):
+        yield CCNOT(a[i], b[i], z[i])
+
+    yield from _parallel_x(b[: n - 1])
+
+
 class DraperAdder(PermutationGate):
     """Logarithmic-depth quantum carry-lookahead adder
 
@@ -94,66 +137,66 @@ class DraperAdder(PermutationGate):
     https://github.com/fedimser/quant-arith-re/blob/main/lib/src/QuantumArithmetic/DKRS2004.qs
     """
 
-    def __init__(self, n: int):
+    def __init__(self, n: int, with_carry: bool = False):
         self.n = n
+        self.with_carry = with_carry
 
     @property
     def input_sizes(self):
-        # Two registers of size n: (a, b).
-        return [self.n, self.n]
+        if not self.with_carry:
+            # Two registers of size n: (a, b).
+            return [self.n, self.n]
+        else:
+            return [self.n, self.n, 1]
 
     @property
     def ancilla_size(self):
         z_size = max(self.n - 1, 0)
-        if z_size <= 1:
-            carry_workspace_size = 0
-        else:
-            carry_workspace_size = z_size - z_size.bit_count() - _floor_log2(z_size)
+        carries_size = self.n if self.with_carry else z_size
+        carry_workspace_size = _carry_workspace_size(carries_size)
         return z_size + carry_workspace_size
 
     def _decompose_(self, qubits: Sequence[cirq.Qid]) -> Iterator[cirq.OP_TREE]:
         n = self.n
-        assert len(qubits) == 2 * n + self.ancilla_size
-        a, b, anc = qubits[0:n], qubits[n : 2 * n], qubits[2 * n :]
+        expected_len = 2 * n + self.ancilla_size + int(self.with_carry)
+        assert len(qubits) == expected_len
+
+        a = qubits[0:n]
+        b = qubits[n : 2 * n]
+        if self.with_carry:
+            carry = qubits[2 * n]
+            anc = qubits[2 * n + 1 :]
+        else:
+            carry = None
+            anc = qubits[2 * n :]
 
         z_size = max(n - 1, 0)
-        z = anc[:z_size]
+        z = list(anc[:z_size])
+        if carry is not None:
+            z.append(carry)
         carry_workspace = anc[z_size:]
 
-        for i in range(z_size):
-            yield CCNOT(a[i], b[i], z[i])
-
-        yield from _parallel_cnot(a, b)
-
-        if n > 1:
-            yield from _compute_carries(b[1:z_size], z, carry_workspace)
-
-        yield from _parallel_cnot(z[: n - 1], b[1:n])
-        yield from _parallel_x(b[: n - 1])
-        yield from _parallel_cnot(a[1 : n - 1], b[1 : n - 1])
-
-        if n > 1:
-            yield from reversed(_compute_carries(b[1 : n - 1], z, carry_workspace))
-
-        yield from _parallel_cnot(a[1 : n - 1], b[1 : n - 1])
-
-        for i in range(n - 1):
-            yield CCNOT(a[i], b[i], z[i])
-
-        yield from _parallel_x(b[: n - 1])
+        yield from _in_place_add_helper(a, b, z, carry_workspace)
 
 
 def verify_draper_adder(adder: DraperAdder):
     """Full formal specification for Draper adder."""
     ver = GateVerifier(adder)
-    a_in, b_in = ver.input_vars
-    a_out, b_out = ver.output_vars
+    a_in, b_in = ver.input_vars[0:2]
+    a_out, b_out = ver.output_vars[0:2]
 
     # First input is unchanged.
     ver.verify_spec(a_out == a_in).assert_ok()
 
     # Second input contains the sum modulo 2^n.
     ver.verify_spec(b_out == (a_in + b_in)).assert_ok()
+
+    if adder.with_carry:
+        # Carry bit is flipped iff overflow happened.
+        carry_in = ver.input_vars[2]
+        carry_out = ver.output_vars[2]
+        overflow = z3.Not(z3.BVAddNoOverflow(a_in, b_in, False))
+        ver.verify_spec((carry_in != carry_out) == overflow).assert_ok()
 
     # Ancillas returned in zero state
     ver.verify_ancillas().assert_ok()
