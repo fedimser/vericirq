@@ -30,8 +30,8 @@ pytest vericirq
 See [Examples.ipynb](Examples.ipynb) for a demonstration of how to use the library.
 
 See [vericirq/examples](vericirq/examples) for more advanced examples of algorithms implemented in Cirq
-and formally verified by VeriCirq. It includes 3 adders, a subtractor, a controlled
-adder-subtractor, 2 multipliers, 2 dividers, and a square root implementation.
+and formally verified by VeriCirq. It includes implementations for: addition, 
+subtraction, comparison, multiplication, division, and square root.
 
 ### AI Skill
 

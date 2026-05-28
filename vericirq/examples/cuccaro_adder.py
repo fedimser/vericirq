@@ -14,7 +14,7 @@ def maj(a, b, c):
 
 
 def uma(a, b, c):
-    yield (CCNOT(a, b, c),)
+    yield CCNOT(a, b, c)
     yield CNOT(c, a)
     yield CNOT(a, b)
 

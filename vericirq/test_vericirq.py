@@ -1,7 +1,7 @@
 import cirq
 import pytest
 
-from .examples.cuccarro_adder import CuccaroAdder, verify_cuccaro_adder
+from .examples.cuccaro_adder import CuccaroAdder, verify_cuccaro_adder
 from .examples.divide import (
     DivideNonRestoringGate,
     DivideRestoringGate,
@@ -19,6 +19,7 @@ from .examples.subtract import (
     verify_add_sub_gate,
     verify_subtract_gate,
 )
+from .examples.cuccaro_compare import verify_cuccaro_compare, CuccaroCompare
 from .gates import AND, IAND
 from .vericirq import GateVerifier, PermutationGate
 
@@ -159,3 +160,9 @@ def test_verify_divide_non_restoring_gate(n: int):
 @pytest.mark.parametrize("n,ans_size", [(1, 1), (4, 2), (5, 3), (6, 4), (10, 5)])
 def test_verify_square_root(n: int, ans_size: int):
     verify_square_root(SquareRoot(n, ans_size))
+
+
+@pytest.mark.parametrize("n", [1, 4, 16])
+@pytest.mark.parametrize("is_controlled", [False, True])
+def test_cuccaro_compare(n: int, is_controlled: bool):
+    verify_cuccaro_compare(CuccaroCompare(n, is_controlled=is_controlled))
