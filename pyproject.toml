@@ -32,7 +32,7 @@ dev = [
 line-length = 100
 
 [tool.setuptools]
-py-modules = ["vericirq"]
+packages = ["vericirq"]
 
 [[tool.mypy.overrides]]
 module = ["z3.*"]
