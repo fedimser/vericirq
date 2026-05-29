@@ -58,7 +58,7 @@ class CuccaroCompare(PermutationGate):
         for i in range(1, n):
             yield from maj(b[i - 1], a[i], b[i])
 
-        if self.is_controlled:
+        if ctrl is not None:
             yield CCNOT(ctrl, b[n - 1], ans)
         else:
             yield CNOT(b[n - 1], ans)
@@ -89,8 +89,6 @@ def verify_cuccaro_compare(gate: CuccaroCompare):
         ctrl_in = ver.input_vars[3]
         ctrl_out = ver.output_vars[3]
         ver.verify_spec(ctrl_in == ctrl_out).assert_ok()
-        ver.verify_spec(
-            ans_flipped == z3.And(ctrl_in == 1, z3.UGT(a_in, b_in))
-        ).assert_ok()
+        ver.verify_spec(ans_flipped == z3.And(ctrl_in == 1, z3.UGT(a_in, b_in))).assert_ok()
     else:
         ver.verify_spec(ans_flipped == z3.UGT(a_in, b_in)).assert_ok()

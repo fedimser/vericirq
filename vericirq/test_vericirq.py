@@ -1,7 +1,9 @@
 import cirq
 import pytest
 
+from .examples.const_adder import ConstAdder, verify_const_adder
 from .examples.cuccaro_adder import CuccaroAdder, verify_cuccaro_adder
+from .examples.cuccaro_compare import CuccaroCompare, verify_cuccaro_compare
 from .examples.divide import (
     DivideNonRestoringGate,
     DivideRestoringGate,
@@ -12,6 +14,14 @@ from .examples.draper_adder import DraperAdder, verify_draper_adder
 from .examples.gidney_adder import GidneyAdder, verify_gidney_adder
 from .examples.jhha_multiplier import JhhaMultiplier, verify_jhha_multiplier
 from .examples.mct_multiplier import MctMultiplier, verify_mct_multiplier
+from .examples.mod_mul import (
+    ModAdder,
+    ModDbl,
+    ModMul,
+    verify_mod_adder,
+    verify_mod_dbl,
+    verify_mod_mul,
+)
 from .examples.square_root import SquareRoot, verify_square_root
 from .examples.subtract import (
     AddSubGate,
@@ -19,7 +29,6 @@ from .examples.subtract import (
     verify_add_sub_gate,
     verify_subtract_gate,
 )
-from .examples.cuccaro_compare import verify_cuccaro_compare, CuccaroCompare
 from .gates import AND, IAND
 from .vericirq import GateVerifier, PermutationGate
 
@@ -166,3 +175,25 @@ def test_verify_square_root(n: int, ans_size: int):
 @pytest.mark.parametrize("is_controlled", [False, True])
 def test_cuccaro_compare(n: int, is_controlled: bool):
     verify_cuccaro_compare(CuccaroCompare(n, is_controlled=is_controlled))
+
+
+@pytest.mark.parametrize("n,c", [(4, 3), (16, 10000)])
+@pytest.mark.parametrize("ctrl", [False, True])
+def test_add_constant(n: int, c: int, ctrl: bool):
+    verify_const_adder(ConstAdder(n, c, is_controlled=ctrl))
+
+
+@pytest.mark.parametrize("n,p", [(4, 11), (16, 65000)])
+@pytest.mark.parametrize("ctrl", [False, True])
+def test_mod_adder(n: int, p: int, ctrl: bool):
+    verify_mod_adder(ModAdder(n, p, is_controlled=ctrl))
+
+
+@pytest.mark.parametrize("n,p", [(4, 11), (16, 65007)])
+def test_mod_dbl(n: int, p: int):
+    verify_mod_dbl(ModDbl(n, p))
+
+
+@pytest.mark.parametrize("n,p", [(4, 5), (4, 11)])
+def test_mod_mul(n: int, p: int):
+    verify_mod_mul(ModMul(n, p))
