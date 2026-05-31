@@ -141,7 +141,7 @@ def test_verify_jhha_multiplier(n: int):
     verify_jhha_multiplier(mult)
 
 
-@pytest.mark.parametrize("n,m", [(1, 1), (4, 4), (12, 16)])
+@pytest.mark.parametrize("n,m", [(1, 1), (1, 2), (2, 3), (4, 4), (12, 16)])
 @pytest.mark.parametrize("is_controlled", [False, True])
 def test_verify_gidney_adder(n: int, m: int, is_controlled: bool):
     adder = GidneyAdder(n, m, is_controlled=is_controlled)

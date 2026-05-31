@@ -31,7 +31,7 @@ def _half_adder_for_inc(
     else:
         assert helper is not None
         yield AND(x, y, helper)
-        yield AND(ctrl, helper, carry_out)
+        yield CCNOT(ctrl, helper, carry_out)
         yield IAND(x, y, helper)
         yield CCNOT(ctrl, x, y)
 
