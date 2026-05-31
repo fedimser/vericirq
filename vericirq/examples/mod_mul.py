@@ -220,3 +220,57 @@ def verify_mod_mul(gate: ModMul):
 
     ver.verify_ancillas().assert_ok()
     ver.verify_and_gates().assert_ok()
+
+
+class ModSquare(PermutationGate):
+    """Computes (x,0) -> (x,(x*x)%p).
+
+    Reference: https://arxiv.org/pdf/1706.06752 (fig.6).
+    """
+
+    def __init__(self, n: int, p: int):
+        assert p % 2 == 1
+        assert 0 <= p < 2**n
+        self.n = n
+        self.p = p
+
+        # Prepare gates.
+        self.mod_adder = ModAdder(n, p, is_controlled=True)
+        self.mod_dbl = ModDbl(n, p)
+
+    @property
+    def input_sizes(self) -> list[int]:
+        return [self.n, self.n]
+
+    @cached_property
+    def ancilla_size(self) -> int:
+        return 1 + max(self.mod_adder.ancilla_size, self.mod_dbl.ancilla_size)
+
+    def _decompose_(self, qubits_seq: Sequence[cirq.Qid]) -> Iterator[cirq.OP_TREE]:
+        qubits = list(qubits_seq)
+        n = self.n
+        x, ans, x_copy, anc = qubits[0:n], qubits[n : 2 * n], qubits[2 * n], qubits[2 * n + 1 :]
+
+        for i in reversed(range(0, n)):
+            yield CNOT(x[i], x_copy)
+            yield self.mod_adder.on(*(x + ans + [x_copy] + anc[: self.mod_adder.ancilla_size]))
+            yield CNOT(x[i], x_copy)
+            if i != 0:
+                yield self.mod_dbl.on(*(ans + anc[: self.mod_dbl.ancilla_size]))
+
+
+def verify_mod_square(gate: ModSquare):
+    ver = GateVerifier(gate)
+    n = gate.n
+    x_in, ans_in = ver.input_vars
+    x_out, ans_out = ver.output_vars
+    ver.add_precondition(z3.ULT(x_in, gate.p))
+    ver.add_precondition(ans_in == 0)
+
+    ver.verify_spec(x_out == x_in).assert_ok()
+
+    expected = z3.URem(z3.ZeroExt(n, x_in) * z3.ZeroExt(n, x_in), gate.p)
+    ver.verify_spec(z3.ZeroExt(n, ans_out) == expected).assert_ok()
+
+    ver.verify_ancillas().assert_ok()
+    ver.verify_and_gates().assert_ok()

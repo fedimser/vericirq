@@ -18,9 +18,11 @@ from .examples.mod_mul import (
     ModAdder,
     ModDbl,
     ModMul,
+    ModSquare,
     verify_mod_adder,
     verify_mod_dbl,
     verify_mod_mul,
+    verify_mod_square,
 )
 from .examples.square_root import SquareRoot, verify_square_root
 from .examples.subtract import (
@@ -197,3 +199,8 @@ def test_mod_dbl(n: int, p: int):
 @pytest.mark.parametrize("n,p", [(4, 5), (4, 11)])
 def test_mod_mul(n: int, p: int):
     verify_mod_mul(ModMul(n, p))
+
+
+@pytest.mark.parametrize("n,p", [(4, 5), (4, 11)])
+def test_mod_square(n: int, p: int):
+    verify_mod_square(ModSquare(n, p))
