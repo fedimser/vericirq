@@ -25,6 +25,12 @@ pip install -e .[dev]
 pytest vericirq
 ```
 
+### How to run the example (for CARS final project)
+
+```
+git clone https://github.com/fedimser/vericirq.git && cd vericirq && pip install -e . && python ./example.py
+```
+
 ### Examples
 
 See [Examples.ipynb](Examples.ipynb) for a demonstration of how to use the library.
