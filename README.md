@@ -25,12 +25,6 @@ pip install -e .[dev]
 pytest vericirq
 ```
 
-### How to run the example (for CARS final project)
-
-```
-git clone https://github.com/fedimser/vericirq.git && cd vericirq && pip install -e . && python ./example.py
-```
-
 ### Examples
 
 See [Examples.ipynb](Examples.ipynb) for a demonstration of how to use the library.
@@ -53,8 +47,3 @@ for which the spec is false.
 * If the SAT problem is unsatisfiable, the spec holds for all inputs.
 
 The core implementation is in [vericirq.py](vericirq/vericirq.py).
-
-
-### Future work
-
-* This is a course project, but I hope it will be useful for real research, and I plan to publish it on PyPI in Summer 2026.
